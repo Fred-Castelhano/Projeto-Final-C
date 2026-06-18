@@ -1,0 +1,9 @@
+Sessão 1 – 18/06/2026
+
+Funcionalidades implementadas hoje: 
+- Criação da estrutura base do projeto (main.c, game.c, game.h).
+- Definição do cabeçalho game.h com as dimensões iniciais do mapa.
+- Configuração inicial do Git no projeto.
+
+Maior dificuldade encontrada e como resolvi:
+- Nenhuma. O foco foi apenas preparar a arquitetura do projeto seguindo as boas práticas de C.
