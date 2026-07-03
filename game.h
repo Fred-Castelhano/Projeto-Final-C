@@ -6,6 +6,7 @@
 
 typedef struct {
     int x, y;
+    float vy;
 } Entidade;
 
 void inicializarMapa(char mapa[ALTURA][LARGURA]);
