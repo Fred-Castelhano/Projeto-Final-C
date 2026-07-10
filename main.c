@@ -13,25 +13,43 @@ void esconderCursor() {
 
 int main() {
     char mapa[ALTURA][LARGURA];
-    Entidade flicky = {5, 5, 0.0}; 
+    Entidade flicky = {9, 3, 0.0, {0}, {0}, 0}; 
     esconderCursor();
+    Porta porta = {9, 8, 2, 1};
     inicializarMapa(mapa);
-    static int contador = 0;
+    Colecionavel pintos[5] = { 
+    {1, 1, 0, 0, 0}, 
+    {18, 1, 0, 0, 1}, 
+    {1, 8, 0, 0, 2}, 
+    {18, 8, 0, 0, 3}, 
+    {10, 2, 0, 0, 4} };
+    Inimigo gatos[2] = { {0, 0}, {19, 9} }; 
+flicky.vidas = 5;
 
-    while(1) {
+
+    static int contador = 0;
+    int pintosEntreguesNaSequencia = 0;
+    int jogoAtivo = 1;
+    int entrando = 0;
+
+    while(jogoAtivo) {
+
         // 1. INPUT
         int movX = 0;
         int tentarSaltar = 0;
-
+        
+    if (!entrando) {
+        //Controlos
         if (GetAsyncKeyState('A') & 0x8000) movX = -1;
         if (GetAsyncKeyState('D') & 0x8000) movX = 1;
         if (GetAsyncKeyState('W') & 0x8000) tentarSaltar = 1;
+
         if (GetAsyncKeyState('Q') & 0x8000) break;
 
         // 2. LÓGICA DE SALTO
         if (tentarSaltar && flicky.vy == 0) {
             flicky.vy = -1.5;
-        }
+            }
 
         // 3. MOVIMENTO LATERAL
         contador++;
@@ -45,15 +63,86 @@ int main() {
             // Colisão
             if (mapa[flicky.y][novoX] != '#') {
                 flicky.x = novoX;
+
+                }
             }
+
+        // 4 LÓGICA DOS INIMIGOS
+        moverInimigos(gatos, 2, &flicky, mapa); // Gatos a perseguir
+
+if (verificarColisaoGato(&flicky, gatos, 2)) { // Função que retorna 1 se colidir
+    flicky.vidas--;
+    if (flicky.vidas <= 0) {
+        printf("GAME OVER!\n");
+        jogoAtivo = 0;
+    } else {
+        // Reiniciar posição do Flicky
+        flicky.x = 9; 
+        flicky.y = 3;
+
+        // Reset Gatos (usa um ciclo para resetar todos)
+        gatos[0].x = 0; gatos[0].y = 0;
+        gatos[1].x = 19; gatos[1].y = 9;
+
+        printf("Perdeste uma vida! Vidas restantes: %d\n", flicky.vidas);
+        Sleep(1000);
+        
+        }
+    }
+}
+
+        // 5. LÓGICA DO JOGO
+    if (!entrando) {
+        atualizarHistorico(&flicky);
+        aplicarGravidade(mapa, &flicky);
+        verificarColisoes(&flicky, pintos, 5);
+        atualizarColecionaveis(&flicky, pintos, 5);
+
         }
 
-        // 3. Gravidade e Desenho
-        aplicarGravidade(mapa, &flicky);
-        desenharJogo(mapa, flicky);
+       // Lógica de Pintos na Porta e Pontuação
+int flickyNaPorta = (flicky.x >= porta.x && flicky.x < porta.x + porta.largura && 
+                     flicky.y >= porta.y && flicky.y < porta.y + porta.altura);
+
+if (flickyNaPorta) {
+    int pintosParaEntregar = 0;
+    for (int i = 0; i < 5; i++) {
+        // Verifica se o pinto está na mesma zona que a porta
+        if (!pintos[i].entrouNaPorta && pintos[i].seguindo) {
+            entrando = 1;
+                
+                // Entrega um pinto de cada vez
+                    pintos[i].entrouNaPorta = 1;
+                    pintos[i].seguindo = 0;
+                    pintosEntreguesNaSequencia++;
+                    flicky.pontuacao += (pintosEntreguesNaSequencia * 100);
+
+                    // Desenha a subida dos pontos
+                    desenharJogo(mapa, flicky, pintos, 5, porta, gatos, 2);
+                    Sleep(200); // Pausa entre cada pinto entregue
+
+                    }
+                }
+                
+                // Limpa o estado após todos os pintos serem processados
+            if (entrando) {
+                GetAsyncKeyState('A'); GetAsyncKeyState('D'); GetAsyncKeyState('W');
+                entrando = 0; // Liberta o Flicky
+            }
+        } else {
+            pintosEntreguesNaSequencia = 0;
+        }
+
+        // Verifica vitória
+        if (verificarVitoria(&flicky, pintos, 5, &porta)) {
+            desenharJogo(mapa, flicky, pintos, 5, porta, gatos, 2);
+            printf("\nNivel Completo! Pontuacao Final: %d\n", flicky.pontuacao);
+            jogoAtivo = 0;
+        } else {
+            desenharJogo(mapa, flicky, pintos, 5, porta, gatos, 2);
+        }
         
         Sleep(30);
     }
-
     return 0;
 }
