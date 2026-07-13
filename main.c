@@ -13,21 +13,22 @@ void esconderCursor() {
 
 int main() {
     char mapa[ALTURA][LARGURA];
-    Entidade flicky = {9, 3, 0.0, {0}, {0}, 0}; 
-    esconderCursor();
-    Porta porta = {9, 8, 2, 1};
-    inicializarMapa(mapa);
-    Colecionavel pintos[5] = { 
-    {1, 1, 0, 0, 0}, 
-    {18, 1, 0, 0, 1}, 
-    {1, 8, 0, 0, 2}, 
-    {18, 8, 0, 0, 3}, 
-    {10, 2, 0, 0, 4} };
-    Inimigo gatos[2] = { {0, 0}, {19, 9} }; 
-flicky.vidas = 5;
 
+    Entidade flicky; 
+    flicky.pontuacao = 0; 
+    flicky.vidas = 5;     
+    flicky.vy = 0;
+
+    esconderCursor();
+    Porta porta;
+    int nivelAtual = 1;
+    Colecionavel pintos[5];
+    
+    Inimigo gatos[2]; 
+    carregarMapa(nivelAtual, mapa, pintos, gatos, &porta, &flicky);
 
     static int contador = 0;
+    static int highScore = 0;
     int pintosEntreguesNaSequencia = 0;
     int jogoAtivo = 1;
     int entrando = 0;
@@ -48,7 +49,7 @@ flicky.vidas = 5;
 
         // 2. LÓGICA DE SALTO
         if (tentarSaltar && flicky.vy == 0) {
-            flicky.vy = -1.5;
+            flicky.vy = -2.5;
             }
 
         // 3. MOVIMENTO LATERAL
@@ -73,8 +74,15 @@ flicky.vidas = 5;
 if (verificarColisaoGato(&flicky, gatos, 2)) { // Função que retorna 1 se colidir
     flicky.vidas--;
     if (flicky.vidas <= 0) {
-        printf("GAME OVER!\n");
-        jogoAtivo = 0;
+        printf("GAME OVER! Pontuacao: %d | Recorde: %d\n", flicky.pontuacao, highScore);
+        // Reinicia pontuação, mas mantém o highScore
+        flicky.pontuacao = 0; 
+        flicky.vidas = 5; 
+        
+        nivelAtual = 1;
+        carregarMapa(nivelAtual, mapa, pintos, gatos, &porta, &flicky);
+        
+        Sleep(2000); // Pausa para o jogador ler o Game Over
     } else {
         // Reiniciar posição do Flicky
         flicky.x = 9; 
@@ -84,6 +92,7 @@ if (verificarColisaoGato(&flicky, gatos, 2)) { // Função que retorna 1 se coli
         gatos[0].x = 0; gatos[0].y = 0;
         gatos[1].x = 19; gatos[1].y = 9;
 
+        system("cls");
         printf("Perdeste uma vida! Vidas restantes: %d\n", flicky.vidas);
         Sleep(1000);
         
@@ -118,11 +127,16 @@ if (flickyNaPorta) {
                     flicky.pontuacao += (pintosEntreguesNaSequencia * 100);
 
                     // Desenha a subida dos pontos
-                    desenharJogo(mapa, flicky, pintos, 5, porta, gatos, 2);
+                    desenharJogo(mapa, flicky, pintos, 5, porta, gatos, 2, highScore);
                     Sleep(200); // Pausa entre cada pinto entregue
+
+                    // Verifica se bateu o recorde
+                    if (flicky.pontuacao > highScore) {
+                    highScore = flicky.pontuacao;
 
                     }
                 }
+            }
                 
                 // Limpa o estado após todos os pintos serem processados
             if (entrando) {
@@ -135,14 +149,31 @@ if (flickyNaPorta) {
 
         // Verifica vitória
         if (verificarVitoria(&flicky, pintos, 5, &porta)) {
-            desenharJogo(mapa, flicky, pintos, 5, porta, gatos, 2);
-            printf("\nNivel Completo! Pontuacao Final: %d\n", flicky.pontuacao);
-            jogoAtivo = 0;
-        } else {
-            desenharJogo(mapa, flicky, pintos, 5, porta, gatos, 2);
+    nivelAtual++;
+    
+    // Loop de níveis 1 a 3
+    if (nivelAtual > 3) nivelAtual = 1;
+
+    // Carrega novo mapa e entidades
+    carregarMapa(nivelAtual, mapa, pintos, gatos, &porta, &flicky);
+    
+    // Reset de entidades
+    flicky.x = 9; flicky.y = 3;
+    for(int i = 0; i < 5; i++) {
+        pintos[i].entrouNaPorta = 0;
+        pintos[i].seguindo = 0;
+    }
+
+    printf("\nNivel Completo! Avancando para o Nivel %d\n", nivelAtual);
+    Sleep(1000);
+    printf("\nPontuacao: %d\n", flicky.pontuacao);
+    } else {
+            // Se ainda não venceu, desenha o estado atual do jogo
+            desenharJogo(mapa, flicky, pintos, 5, porta, gatos, 2, highScore);
         }
         
         Sleep(30);
     }
+
     return 0;
 }

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include "game.h"
 
-void inicializarMapa(char mapa[ALTURA][LARGURA]) {
+void carregarMapa(int nivel, char mapa[ALTURA][LARGURA], Colecionavel *pintos, Inimigo *gatos, Porta *porta, Entidade *flicky) {
+
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < LARGURA; j++) {
             mapa[i][j] = ' ';
@@ -12,6 +13,9 @@ void inicializarMapa(char mapa[ALTURA][LARGURA]) {
     // Chão inferior
     for (int j = 0; j < LARGURA; j++) mapa[ALTURA - 1][j] = '#';
 
+    // Nível 1
+    if (nivel == 1) {
+
     // Plataformas intermédias
     for (int j = 0; j < 6; j++) mapa[7][j] = '#'; // Plataforma esquerda baixo
     for (int j = 12; j < LARGURA; j++) mapa[7][j] = '#'; // Plataforma direita baixo
@@ -21,24 +25,107 @@ void inicializarMapa(char mapa[ALTURA][LARGURA]) {
     for (int j = 0; j < 7; j++) mapa[2][j] = '#'; // Plataforma esquerda cima
     for (int j = 14; j < LARGURA; j++) mapa[2][j] = '#'; // Plataforma direita cima
 
+        // Posições Nível 1
+        porta->x = 9; porta->y = 8;
+        porta->largura = 2; porta->altura = 1;
+        flicky->x = 9; flicky->y = 3;
+
+        pintos[0] = (Colecionavel){1, 1, 0, 0, 0}; 
+        pintos[1] = (Colecionavel){18, 1, 0, 0, 1};
+        pintos[2] = (Colecionavel){1, 6, 0, 0, 2};
+        pintos[3] = (Colecionavel){18, 8, 0, 0, 3};
+        pintos[4] = (Colecionavel){10, 2, 0, 0, 4};
+
+        gatos[0] = (Inimigo){0, 0}; 
+        gatos[1] = (Inimigo){19, 9};
+
+    } 
+    // Nível 2
+    else if (nivel == 2) {
+        
+        // Plataforma Superior 
+    for (int j = 7; j < 13; j++) {
+        mapa[2][j] = '#'; 
+    }
+
+    // Plataformas Médio e Inferior 
+    for (int j = 5; j < 15; j++) {
+        mapa[5][j] = '#'; 
+        mapa[8][j] = '#'; 
+    }
+
+    // Plataformas laterais
+    for (int j = 0; j < 4; j++) {
+        mapa[5][j] = '#';      mapa[5][16+j] = '#';
+        mapa[7][j] = '#';      mapa[7][16+j] = '#';
+        }
+        
+        // Posições Nível 2
+        porta->x = 12; porta->y = 4;
+        porta->largura = 2; porta->altura = 1;
+        flicky->x = 18; flicky->y = 6;
+
+        pintos[0] = (Colecionavel){1, 1, 0, 0, 0}; 
+        pintos[1] = (Colecionavel){18, 1, 0, 0, 1};
+        pintos[2] = (Colecionavel){1, 8, 0, 0, 2};
+        pintos[3] = (Colecionavel){18, 8, 0, 0, 3};
+        pintos[4] = (Colecionavel){10, 4, 0, 0, 4};
+
+        gatos[0] = (Inimigo){0, 0}; 
+        gatos[1] = (Inimigo){19, 9};
+    } 
+    // Nível 3
+    else if (nivel == 3) {
+    // Plataforma superior central
+    for (int j = 6; j < 14; j++) mapa[2][j] = '#'; 
+    
+    // Plataformas intermédias laterais
+    for (int j = 0; j < 6; j++) mapa[4][j] = '#'; // Esq
+    for (int j = 14; j < LARGURA; j++) mapa[4][j] = '#'; // Dir
+    
+    // Plataformas intermédias inferiores
+    for (int j = 0; j < 7; j++) mapa[6][j] = '#'; // Esq
+    for (int j = 13; j < LARGURA; j++) mapa[6][j] = '#'; // Dir
+    
+    // Plataforma base central
+    for (int j = 6; j < 14; j++) mapa[8][j] = '#';
+
+    // Posições Nível 3
+    porta->x = 9; porta->y = 1;
+    porta->largura = 2; porta->altura = 1;
+    flicky->x = 18; flicky->y = 5;
+
+    pintos[0] = (Colecionavel){2, 3, 0, 0, 0};
+    pintos[1] = (Colecionavel){17, 3, 0, 0, 1};
+    pintos[2] = (Colecionavel){2, 5, 0, 0, 2};
+    pintos[3] = (Colecionavel){17, 5, 0, 0, 3};
+    pintos[4] = (Colecionavel){10, 5, 0, 0, 4};
+
+    gatos[0] = (Inimigo){5, 4}; 
+    gatos[1] = (Inimigo){14, 7};
+}
+
     }
 
     void aplicarGravidade(char mapa[ALTURA][LARGURA], Entidade *flicky) {
     // 1. Aplica a gravidade (se estiver no ar)
-    if (mapa[flicky->y + 1][flicky->x] != '#') {
-       float gravidade = (flicky->vy < 0) ? 0.15f : 0.35f;
-        flicky->vy += gravidade;
-    } else {
-        if (flicky->vy > 0) flicky->vy = 0; //Aterra no chão
-    }
+    int proximoY = flicky->y + (flicky->vy > 0 ? 1 : -1);
 
-    // 2. Aplica a velocidade à posição
-    int novoY = flicky->y + (int)flicky->vy;
-    
-    if (novoY >= 0 && novoY < ALTURA && mapa[novoY][flicky->x] != '#') {
-        flicky->y = novoY;
-    } else if (flicky->vy > 0) {
-        flicky->vy = 0; // Colisão com chão
+    // Se estiver a mover-se (vy != 0), verifica colisão passo a passo
+    if (flicky->vy != 0) {
+        if (proximoY >= 0 && proximoY < ALTURA && mapa[proximoY][flicky->x] != '#') {
+            flicky->y = proximoY;
+            // Reduz a velocidade gradualmente até parar
+            if (flicky->vy > 0) flicky->vy -= 0.2f; 
+            if (flicky->vy < 0) flicky->vy += 0.2f;
+        } else {
+            flicky->vy = 0; // Bateu em algo, para o movimento
+        }
+    } 
+    // Se vy é 0, aplica gravidade normal (cair)
+    else if (mapa[flicky->y + 1][flicky->x] != '#') {
+        flicky->y += 1;
+        
     }
 }
 
@@ -80,7 +167,7 @@ void moverInimigos(Inimigo *gatos, int numGatos, Entidade *flicky, char mapa[ALT
                 gatos[i].y++;
             } 
             // Lógica de salto
-            // Se o Flicky está acima e não há parede, o gato "salta"
+            // Se o Flicky está acima e não há plataforma, o gato salta
             else if (gatos[i].y > flicky->y) {
                 // Tenta subir até 2 blocos se não houver parede
                 if (gatos[i].y - 2 >= 0 && mapa[gatos[i].y - 1][gatos[i].x] != '#' && mapa[gatos[i].y - 2][gatos[i].x] != '#') {
@@ -126,7 +213,7 @@ void atualizarColecionaveis(Entidade *p, Colecionavel *c, int numColecionaveis) 
     return 1; 
 }
 
-void desenharJogo(char mapa[ALTURA][LARGURA], Entidade flicky, Colecionavel *pintos, int numPintos, Porta porta, Inimigo *gatos, int numGatos) {
+void desenharJogo(char mapa[ALTURA][LARGURA], Entidade flicky, Colecionavel *pintos, int numPintos, Porta porta, Inimigo *gatos, int numGatos, int highScore) {
     printf("\033[H"); 
     for (int i = 0; i < ALTURA; i++) {
         for (int j = 0; j < LARGURA; j++) {
@@ -167,5 +254,5 @@ void desenharJogo(char mapa[ALTURA][LARGURA], Entidade flicky, Colecionavel *pin
         }
         printf("\n");
     }
-    printf("Pontuacao: %d | Vidas: %d\n", flicky.pontuacao, flicky.vidas);
+    printf("Pontuacao: %d | Recorde: %d | Vidas: %d\n", flicky.pontuacao, highScore, flicky.vidas);
 }

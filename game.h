@@ -32,8 +32,8 @@ typedef struct {
     int ativo; // Para controlar se o gato está em jogo
 } Inimigo;
 
-void inicializarMapa(char mapa[ALTURA][LARGURA]);
-void desenharJogo(char mapa[ALTURA][LARGURA], Entidade flicky, Colecionavel *pintos, int numPintos, Porta porta, Inimigo *gatos, int numGatos);
+void carregarMapa(int nivel, char mapa[ALTURA][LARGURA], Colecionavel *pintos, Inimigo *gatos, Porta *porta, Entidade *flicky);
+void desenharJogo(char mapa[ALTURA][LARGURA], Entidade flicky, Colecionavel *pintos, int numPintos, Porta porta, Inimigo *gatos, int numGatos, int highScore);
 void aplicarGravidade(char mapa[ALTURA][LARGURA], Entidade *flicky);
 void verificarColisoes(Entidade *p, Colecionavel *c, int numColecionaveis);
 void atualizarColecionaveis(Entidade *p, Colecionavel *c, int numColecionaveis);
